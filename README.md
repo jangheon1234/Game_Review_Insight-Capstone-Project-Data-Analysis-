@@ -15,13 +15,15 @@
 * 몬스터 헌터 와일즈
 * 나 혼자만 레벨업: 어라이즈
 
+원래 출시 후 1개월 이상 지나지 않은 게임은 하지 않으려 했으나 부정적인 리뷰가 많은게임이 적어 추가 하게되었다 
+
 ---
 
 ## 2. 데이터 수집
 
 ### 2.1 데이터 수집 방법
 
-리뷰 데이터는 Steam 리뷰 페이지를 대상으로 Selenium과 BeautifulSoup을 활용하여 수집하였다. 동적 로딩 구조를 고려하여 Selenium을 통해 페이지를 제어하고, HTML 구조 분석을 통해 리뷰 데이터를 추출하였다.
+리뷰 데이터는 Steam api를 활용해 크롤링 하였다.
 
 수집된 주요 항목은 다음과 같다.
 
@@ -32,38 +34,40 @@
 
 ※ 실제 리뷰 원문 데이터는 저작권 이슈로 인해 Github에 업로드하지 않았으며, 데이터 수집 로직이 구현된 `crawling.py` 코드는 공개하였다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 크롤링 흐름도 또는 Steam 리뷰 페이지 구조 설명 이미지
+> **크롤링 구조**
+>![스크린샷 2025-12-14 152101.png](image/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-12-14%20152101.png)
+> * 4개를 총 25000개를 타겟으로 약 6300개씩 추출
 
 ---
 
 ## 3. 데이터 라벨링 과정
 
-### 3.1 감성 및 토픽 정의
-
 본 프로젝트에서는 리뷰 데이터를 다음 기준으로 라벨링하였다.
 
-* **감성(Sentiment)**
-
-  * 긍정: 게임을 추천하거나 전반적으로 만족을 표현한 리뷰
-  * 부정: 게임을 비추천하거나 불만을 표현한 리뷰
-
-* **토픽(Topic)**
 
   * 기술(0): 버그, 최적화, 성능, 시스템 오류 등
   * 스토리(1): 세계관, 서사, 캐릭터, 연출 등
   * 플레이(2): 전투, 조작, 콘텐츠, 게임성 등
 
-### 3.2 라벨링 방식
+라벨링은 openai api 를 사용 
+모델은 gpt-4o-mini를 사용
 
-리뷰 텍스트의 감성 및 토픽 분류에는 한국어 사전학습 언어모델인 **KoELECTRA 기반 분류 모델**을 사용하였다. KoELECTRA는 한국어 문맥 이해에 강점을 가지며, 문장 단위 분류 태스크에 적합한 모델이다.
-
-프로젝트 일정 상 대규모 데이터에 대한 실제 모델 학습 시간이 제한되어, 사전에 정의된 라벨링 기준과 KoELECTRA 모델의 출력 형식을 기반으로 한 분류 결과 데이터를 생성하여 분석에 활용하였다. 이를 통해 모델 구조와 분석 흐름에 대한 이해를 중심으로 프로젝트를 진행하였다.
+사용한 프롬프트
+>너는 게임 리뷰 데이터를 보고 유저가 평가를 내린 '가장 결정적인 원인'을 분류하는 AI야.\
+아래 리뷰 텍스트를 읽고, 기준에 맞춰 0, 1, 2 중 하나로 분류하고 그 이유를 요약해줘.\
+[분류 기준]\
+0 (기술/환경): 최적화, 렉, 프레임 드랍, 버그, 튕김, 서버 불안정, 발열, 사양 문제, 실행 불가\
+1 (콘텐츠/스토리): 스토리, 서사, 연출, 더빙(성우), 그래픽(심미적), OST, 분위기, 몰입감, 원작 재현\
+2 (플레이/시스템): 전투, 타격감, 난이도, 조작감, UI/UX, 밸런스, 파밍, 과금(BM), 재미, 시스템\
+반드시 아래 JSON 포맷으로만 출력해:\
+{ \
+  "category_id": 0, \
+  "reason_keyword": "최적화 문제", \
+  "summary": "최적화가 엉망이라 게임 진행이 불가능함" 
 
 ---
 
-## 4. 데이터 전처리 및 탐색적 데이터 분석(EDA)
+## 4. 데이터 전처리 및 학습 탐색적 데이터 분석(EDA)
 
 ### 4.1 데이터 구성
 
@@ -78,29 +82,30 @@
 | playtime  | 플레이 시간             |
 | helpful   | 유용함 수              |
 
+
 ### 4.2 데이터 분포 분석
 
 리뷰 데이터의 기본적인 특성을 파악하기 위해 토픽 분포와 감성 비율을 시각화하였다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 전체 토픽 분포 그래프 (`1_topic_distribution.png`)
+> **전체 리뷰 주제 분포**
+>![1_topic_distribution.png](image/analysis_result_images/1_topic_distribution.png)
 
-전체 리뷰에서 플레이 관련 토픽의 비중이 가장 높게 나타났으며, 이는 유저들이 게임 플레이 경험을 가장 중요하게 인식하고 있음을 의미한다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 토픽별 긍정/부정 비율 그래프 (`2_topic_sentiment_ratio.png`)
+전체 리뷰에서 스토리 관련 토픽의 비중이 가장 높게 나타났으며, 이는 유저들이 스토리 및 콘텐츠 운영을 가장 중요하게 인식하고 있음을 의미한다.
 
-기술 토픽에서는 부정 감성 비율이 상대적으로 높게 나타났으며, 이는 기술적 완성도가 유저 만족도에 중요한 영향을 미친다는 점을 시사한다.
+>  **주제별 긍정/부정 반응 비교**
+>![2_topic_sentiment_ratio.png](image/analysis_result_images/2_topic_sentiment_ratio.png)
+
+기술 토픽에서는 긍정 감성 비율이 상대적으로 높게 나타났다.
 
 ### 4.3 플레이타임 분석
 
 감성에 따른 플레이타임 분포를 분석한 결과, 긍정 리뷰를 작성한 유저의 평균 플레이타임이 더 높은 경향을 보였다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 감성별 플레이타임 비교 그래프 (`3_playtime_comparison.png`)
+하지만 최근에 나온 게임인 나 혼자만 레벨업은 평가가 좋지 않아 부정 리뷰에서의 플레이타임이 높게 나타난다. 이러한 특성으로 인해 출시 이후 최소 1개월 이상이 경과한 데이터가 분석에 보다 중요하다고 볼 수 있다.
+>**게임별 긍정/부정 리뷰어의 플레이 타임 비교**
+>![3_playtime_comparison.png](image/analysis_result_images/3_playtime_comparison.png)
+
 
 ---
 
@@ -108,9 +113,9 @@
 
 게임별로 어떤 토픽이 주요 이슈로 작용하는지를 확인하기 위해 히트맵 분석을 수행하였다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 게임 × 토픽 히트맵 (`4_game_topic_heatmap.png`)
+> **게임별 주제 언급 빈도**
+>![4_game_topic_heatmap.png](image/analysis_result_images/4_game_topic_heatmap.png)
+
 
 히트맵 결과, 게임별로 강조되는 토픽이 명확히 구분되었으며 각 게임의 강점 또는 문제 영역을 직관적으로 확인할 수 있었다.
 
@@ -122,24 +127,47 @@
 
 게임별로 긍정 및 부정 리뷰를 구분하여 워드클라우드를 생성함으로써, 감성에 따른 언어적 차이를 비교하였다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * 게임별 긍정 리뷰 워드클라우드
-> * 게임별 부정 리뷰 워드클라우드
+> 발더스 게이트 3 긍정 
+> ![WC_Baldurs_Gate_3_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Baldurs_Gate_3_Positive.png)
+> 발더스 게이트 3 부정
+> ![WC_Baldurs_Gate_3_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Baldurs_Gate_3_Negative.png)
+
+> 엘든링 긍정
+> ![WC_Elden_Ring_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Elden_Ring_Positive.png)
+> 엘든링 부정 
+> ![WC_Elden_Ring_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Elden_Ring_Negative.png)
+
+> 몬스터 헌터 와일즈 긍정
+> ![WC_Monster_Hunter_Wilds_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Monster_Hunter_Wilds_Positive.png)
+> 몬스터 헌터 와일즈 부정
+> ![WC_Monster_Hunter_Wilds_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Monster_Hunter_Wilds_Negative.png)
+
+> 나 혼자만 레벨업:어라이즈 긍정
+> ![WC_Solo_Leveling_Arise_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Solo_Leveling_Arise_Positive.png)
+> 나 혼자만 레벨업:어라이즈 부정
+> ![WC_Solo_Leveling_Arise_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Solo_Leveling_Arise_Negative.png)
+
 
 긍정 리뷰에서는 몰입, 재미, 연출과 같은 감성적 키워드가 주로 등장한 반면, 부정 리뷰에서는 버그, 최적화, 오류 등 기술적 문제를 나타내는 단어가 두드러졌다.
 
+
 ---
 
-## 7. 모델 학습 과정 예시
+## 7. 모델 
 
-KoELECTRA 기반 분류 모델의 일반적인 학습 과정을 설명하기 위해 epoch별 학습 정확도 및 검증 정확도 변화 예시를 시각화하였다.
+본 프로젝트에서는 한국어 리뷰 텍스트의 특성을 효과적으로 반영하기 위해 사전 학습된 언어 모델인 KoELECTRA (monologg/koelectra-base-v3-discriminator) 를 기반으로 분류 모델을 구성하였다. KoELECTRA는 한국어 자연어 처리 태스크에서 우수한 성능을 보이는 모델로, 비교적 적은 학습 자원으로도 안정적인 분류 성능을 확보할 수 있다는 장점이 있다.
 
-> 📌 **이미지 삽입 위치 제안**
->
-> * Epoch별 학습 정확도 / 검증 정확도 그래프
+본 연구에서는 KoELECTRA 모델 위에 분류 레이어를 추가하여 리뷰 텍스트를 입력으로 받아 감성(긍정/부정) 및 토픽(기술/스토리/플레이) 정보를 예측하도록 설계하였다.
 
-해당 그래프는 모델 학습 구조와 성능 추이를 설명하기 위한 참고 자료로 활용되었다.
+데이터는 다음과 같은 기준으로 활용하였다.
+
+>  -학습 데이터: 모델 파라미터 학습에 사용\
+>  -검증 데이터: 학습 과정 중 모델 성능 확인에 사용
+
+---
+
+>  **검증 정확도 그래프**
+>![스크린샷 2025-12-14 145751.png](image/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-12-14%20145751.png)
 
 ---
 
@@ -147,22 +175,7 @@ KoELECTRA 기반 분류 모델의 일반적인 학습 과정을 설명하기 위
 
 본 프로젝트에서는 게임 리뷰 데이터를 기반으로 유저 감성과 주요 이슈를 감성 및 토픽 관점에서 분석하였다. 분석 결과, 유저 평가는 플레이 경험과 기술적 완성도에 크게 의존하며, 게임별로 서로 다른 이슈 구조가 존재함을 확인하였다.
 
-본 연구는 리뷰 데이터가 게임 분석 및 사용자 경험 연구에 있어 유의미한 데이터 자원이 될 수 있음을 보여준다. 향후 연구에서는 실제 모델 학습을 통한 성능 검증과, 시계열 기반 리뷰 변화 분석을 추가적으로 수행할 수 있을 것이다.
+본 연구는 리뷰 데이터가 게임 분석 및 사용자 경험 연구에 있어 유의미한 데이터 자원이 될 수 있음을 보여준다.
 
 ---
 
-## 9. 프로젝트 구조
-
-```
-├─ crawling.py
-├─ see.py
-├─ see_word.py
-├─ final_result_4games.csv
-├─ analysis_result_images/
-│  ├─ 1_topic_distribution.png
-│  ├─ 2_topic_sentiment_ratio.png
-│  ├─ 3_playtime_comparison.png
-│  ├─ 4_game_topic_heatmap.png
-│  └─ wordclouds_basic/
-└─ README.md
-```
