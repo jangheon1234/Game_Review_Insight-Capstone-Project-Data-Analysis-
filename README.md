@@ -127,24 +127,24 @@
 
 게임별로 긍정 및 부정 리뷰를 구분하여 워드클라우드를 생성함으로써, 감성에 따른 언어적 차이를 비교하였다.
 
-> 발더스 게이트 3 긍정 
-> ![WC_Baldurs_Gate_3_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Baldurs_Gate_3_Positive.png)
-> 발더스 게이트 3 부정
+> 발더스 게이트 3 긍정 \
+> ![WC_Baldurs_Gate_3_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Baldurs_Gate_3_Positive.png)\
+> 발더스 게이트 3 부정\
 > ![WC_Baldurs_Gate_3_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Baldurs_Gate_3_Negative.png)
 
-> 엘든링 긍정
-> ![WC_Elden_Ring_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Elden_Ring_Positive.png)
-> 엘든링 부정 
+> 엘든링 긍정\
+> ![WC_Elden_Ring_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Elden_Ring_Positive.png)\
+> 엘든링 부정 \
 > ![WC_Elden_Ring_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Elden_Ring_Negative.png)
 
-> 몬스터 헌터 와일즈 긍정
-> ![WC_Monster_Hunter_Wilds_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Monster_Hunter_Wilds_Positive.png)
-> 몬스터 헌터 와일즈 부정
+> 몬스터 헌터 와일즈 긍정\
+> ![WC_Monster_Hunter_Wilds_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Monster_Hunter_Wilds_Positive.png)\
+> 몬스터 헌터 와일즈 부정\
 > ![WC_Monster_Hunter_Wilds_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Monster_Hunter_Wilds_Negative.png)
 
-> 나 혼자만 레벨업:어라이즈 긍정
-> ![WC_Solo_Leveling_Arise_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Solo_Leveling_Arise_Positive.png)
-> 나 혼자만 레벨업:어라이즈 부정
+> 나 혼자만 레벨업:어라이즈 긍정\
+> ![WC_Solo_Leveling_Arise_Positive.png](image/analysis_result_images/wordclouds_basic/WC_Solo_Leveling_Arise_Positive.png)\
+> 나 혼자만 레벨업:어라이즈 부정\
 > ![WC_Solo_Leveling_Arise_Negative.png](image/analysis_result_images/wordclouds_basic/WC_Solo_Leveling_Arise_Negative.png)
 
 
